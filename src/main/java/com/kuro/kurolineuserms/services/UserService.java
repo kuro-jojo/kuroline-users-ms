@@ -1,50 +1,62 @@
 package com.kuro.kurolineuserms.services;
 
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
 import com.kuro.kurolineuserms.data.User;
 import com.kuro.kurolineuserms.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @Service
-public class UserService {
-    private final UserRepository userRepository;
+public class UserService implements UserRepository {
+    private final CollectionReference reference;
 
-    //    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService(Firestore firestoreClient) {
+        this.reference = firestoreClient.collection("users");
     }
 
-    public Optional<User> find(String id) {
-        return userRepository.findById(id);
+    @Override
+    public void add(User user) throws ExecutionException, InterruptedException {
+        DocumentReference docRef = reference.document(user.getId());
+        docRef.set(user);
     }
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    @Override
+    public User get(String uid) throws ExecutionException, InterruptedException {
+        DocumentReference docRef = reference.document(uid);
+
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+        DocumentSnapshot document;
+
+        document = future.get();
+        if (document.exists()) {
+            return document.toObject(User.class);
+        }
+        return null;
     }
 
+    @Override
+    public void update(User user) {
+
+    }
+
+    @Override
     public User findByName(String name) {
-        return userRepository.findByName(name);
+        return null;
     }
 
+    @Override
+    public User findByEmail(String email) {
+        return null;
+    }
+
+    @Override
     public List<User> findAllByName(String name) {
-        return userRepository.findAllByName(name);
-    }
-
-    public void add(User user) {
-        userRepository.insert(user);
-    }
-
-    public void delete(User user) {
-        userRepository.delete(user);
-    }
-
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    public void edit(User user) {
-        userRepository.save(user);
+        return null;
     }
 }

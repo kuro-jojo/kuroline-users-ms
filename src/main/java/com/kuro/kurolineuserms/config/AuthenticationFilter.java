@@ -3,6 +3,7 @@ package com.kuro.kurolineuserms.config;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.kuro.kurolineuserms.data.User;
 import com.mongodb.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -40,19 +41,18 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
         } catch (FirebaseAuthException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            String newContent = "{\"message\": \"Incorrect token provided\"}";
-            response.setContentLength(newContent.length());
-            response.getOutputStream().write(newContent.getBytes());
-            return;
-        } catch (Exception ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             String newContent = String.format("{\"message\": \"%s\"}", ex.getMessage());
             response.setContentLength(newContent.length());
             response.getOutputStream().write(newContent.getBytes());
             return;
         }
+        User user = new User();
+        user.setId(decodedToken.getUid());
+        user.setName(decodedToken.getName());
+        user.setEmail(decodedToken.getEmail());
+
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                decodedToken.getUid(), null, Collections.emptyList());
+                user, null, Collections.emptyList());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);

@@ -1,15 +1,21 @@
 package com.kuro.kurolineuserms.repositories;
 
 import com.kuro.kurolineuserms.data.User;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-public interface UserRepository extends MongoRepository<User, String> {
+public interface UserRepository {
 
-    public User findByName(String name);
+    void add(User user) throws ExecutionException, InterruptedException;
 
-    public User findByEmail(String email);
+    User get(String uid) throws ExecutionException, InterruptedException;
 
-    public List<User> findAllByName(String name);
+    void update(User user);
+
+    User findByName(String name);
+
+    User findByEmail(String email);
+
+    List<User> findAllByName(String name);
 }

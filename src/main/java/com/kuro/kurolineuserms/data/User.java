@@ -1,14 +1,6 @@
 package com.kuro.kurolineuserms.data;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.List;
-
-public class User implements UserDetails {
-    @Id
+public class User {
     private String id;
     private String name;
     private String email;
@@ -31,6 +23,14 @@ public class User implements UserDetails {
         this.email = email;
         this.status = status;
         this.profilePhoto = profilePhoto;
+    }
+
+    public static boolean isNull(User user) {
+        return user.getEmail() == null || user.getName() == null || user.getStatus() == null;
+    }
+
+    public static boolean isEmpty(User user) {
+        return user.getEmail().isEmpty() || user.getName().isEmpty();
     }
 
     public String getPhoneNumber() {
@@ -81,52 +81,8 @@ public class User implements UserDetails {
         this.profilePhoto = profilePhoto;
     }
 
-    public boolean isNull() {
-        return email == null || name == null || status == null;
-    }
-
-    public boolean isEmpty() {
-        return email.isEmpty() || name.isEmpty();
-    }
-
     @Override
     public String toString() {
         return String.format("User info : \n id : %s, name : %s, email : %s, status : %s, profile : %s", id, name, email, status, profilePhoto);
     }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public String getPassword() {
-        return null;
-    }
-
-    @Override
-    public String getUsername() {
-        return id;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
 }
