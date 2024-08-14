@@ -26,7 +26,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-
+        String path = request.getRequestURI();
+        if (path.contains("/register")) {
+            // Skip authentication for this path
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             String newContent = "{\"message\": \"An authentication token must be provided.\"}";

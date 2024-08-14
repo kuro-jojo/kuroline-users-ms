@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.ExecutionException;
 
+/**
+ * User controller : Handles all requests for managing a user
+ */
 @RestController
-@RequestMapping(path = "/api/v1")
+@RequestMapping(path = "/api/v1/users")
 public class UserController {
     private final UserService userService;
 
@@ -20,7 +23,13 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/users/details")
+    /**
+     * Gets user details.
+     *
+     * @param user the user
+     * @return the user details
+     */
+    @GetMapping("/details")
     public ResponseEntity<Object> getUserDetails(@AuthenticationPrincipal User user) {
         try {
             user = userService.get(user.getId());
@@ -34,7 +43,13 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users/oauth")
+    /**
+     * Sign in with oauth response entity.
+     *
+     * @param user the user
+     * @return the response entity
+     */
+    @PostMapping("/oauth")
     public ResponseEntity<ResponseMessage> signInWithOauth(@AuthenticationPrincipal User user) {
         if (user == null) {
             return new ResponseEntity<>(new ResponseMessage("No user provided"), HttpStatus.BAD_REQUEST);
@@ -54,7 +69,16 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users")
+
+
+    /**
+     * Sign in response entity.
+     *
+     * @param user     the user
+     * @param authUser the auth user
+     * @return the response entity
+     */
+    @PostMapping("")
     public ResponseEntity<Object> signIn(@RequestBody User user, @AuthenticationPrincipal User authUser) {
         if (User.isNull(user)) {
             return new ResponseEntity<>("No user provided", HttpStatus.BAD_REQUEST);
