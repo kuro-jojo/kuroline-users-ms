@@ -75,9 +75,19 @@ public class UserService implements UserRepository {
         return null;
     }
 
-    @Override
-    public void update(User user) {
+    private void updateBy(String field, String val, String userID) {
+        DocumentReference docRef = reference.document(userID);
+        docRef.update(field, val);
+    }
 
+    @Override
+    public void updateByName(User user) {
+        updateBy("name", user.getName(), user.getId());
+    }
+
+    @Override
+    public void updateByProfilePicture(User user) {
+        updateBy("profilePicture", user.getProfilePicture(), user.getId());
     }
 
     @Override

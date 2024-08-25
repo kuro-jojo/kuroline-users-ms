@@ -1,6 +1,5 @@
 package com.kuro.kurolineuserms.repositories;
 
-import com.google.firebase.auth.FirebaseAuthException;
 import com.kuro.kurolineuserms.data.User;
 
 import java.util.List;
@@ -12,7 +11,9 @@ public interface UserRepository {
     User register(User user) throws Exception;
     User get(String uid) throws ExecutionException, InterruptedException;
 
-    void update(User user);
+    void updateByName(User user);
+
+    void updateByProfilePicture(User user);
 
     User findByName(String name);
 

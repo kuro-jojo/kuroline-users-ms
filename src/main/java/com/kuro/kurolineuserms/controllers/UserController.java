@@ -2,13 +2,16 @@ package com.kuro.kurolineuserms.controllers;
 
 import com.kuro.kurolineuserms.data.ResponseMessage;
 import com.kuro.kurolineuserms.data.User;
+import com.kuro.kurolineuserms.services.FileService;
 import com.kuro.kurolineuserms.services.UserService;
-import com.kuro.kurolineuserms.utils.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -18,9 +21,14 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping(path = "/api/v1/users")
 public class UserController {
     private final UserService userService;
+    private final FileService fileService;
 
-    public UserController(UserService userService) {
+    public UserController(
+            UserService userService,
+            FileService fileService
+    ) {
         this.userService = userService;
+        this.fileService = fileService;
     }
 
     /**
@@ -43,90 +51,31 @@ public class UserController {
         }
     }
 
-    /**
-     * Sign in with oauth response entity.
-     *
-     * @param user the user
-     * @return the response entity
-     */
-    @PostMapping("/oauth")
-    public ResponseEntity<ResponseMessage> signInWithOauth(@AuthenticationPrincipal User user) {
-        if (user == null) {
-            return new ResponseEntity<>(new ResponseMessage("No user provided"), HttpStatus.BAD_REQUEST);
+    @PutMapping("/name")
+    public ResponseEntity<Object> updateName(
+            @RequestBody Map<String, String> name,
+            @AuthenticationPrincipal User user) {
+        if (name.get("name").isBlank()) {
+            return new ResponseEntity<>(new ResponseMessage("Name not provided"), HttpStatus.BAD_REQUEST);
         }
-
-        try {
-            User u = userService.get(user.getId());
-            if (u != null) {
-                return new ResponseEntity<>(new ResponseMessage("User found"), HttpStatus.OK);
-            }
-
-            userService.add(user);
-            return new ResponseEntity<>(new ResponseMessage("User added successfully"), HttpStatus.CREATED);
-
-        } catch (ExecutionException | InterruptedException e) {
-            return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        user.setName(name.get("name"));
+        userService.updateByName(user);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
-
-
-    /**
-     * Sign in response entity.
-     *
-     * @param user     the user
-     * @param authUser the auth user
-     * @return the response entity
-     */
-    @PostMapping("")
-    public ResponseEntity<Object> signIn(@RequestBody User user, @AuthenticationPrincipal User authUser) {
-        if (User.isNull(user)) {
-            return new ResponseEntity<>("No user provided", HttpStatus.BAD_REQUEST);
-        }
-        if (User.isEmpty(user)) {
-            return new ResponseEntity<>("Empty data", HttpStatus.BAD_REQUEST);
-        }
-        // check user email
-        if (EmailValidator.isEmailInvalid(user.getEmail())) {
-            return new ResponseEntity<>("Invalid email", HttpStatus.BAD_REQUEST);
-        }
-
+    @PutMapping("/picture")
+    public ResponseEntity<Object> updateProfilePicture(
+            @RequestPart(value = "picture") MultipartFile file,
+            @AuthenticationPrincipal User user
+    ) {
         try {
-            if (userService.get(user.getId()) != null) {
-                return new ResponseEntity<>("User already exists with this email address", HttpStatus.CONFLICT);
-            }
-        } catch (ExecutionException | InterruptedException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-
+            String  picture = fileService.upload(file, user.getId());
+            System.out.println("Updating profile : " + picture);
+            user.setProfilePicture(picture);
+            userService.updateByProfilePicture(user);
+        } catch (IOException e) {
+            return new ResponseEntity<>(new ResponseMessage("Cannot upload the profile picture"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        user.setId(authUser.getId());
-        try {
-            userService.add(user);
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>("User added successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
-
-//    @PatchMapping("/users/{id}")
-//    public ResponseEntity<Object> edit(@RequestBody User user, @PathVariable String id){
-//        if (id == null || id.isBlank()){
-//            return new ResponseEntity<>("An id is required", HttpStatusCode.valueOf(400));
-//        }
-//        if(userService.find(id).equals(Optional.empty())){
-//            return new ResponseEntity<>("User not found", HttpStatusCode.valueOf(404));
-//        }
-//        if (user.isEmpty()){
-//            return new ResponseEntity<>("Empty data", HttpStatusCode.valueOf(400));
-//        }
-//        // check user email
-//        if(EmailValidator.isEmailInvalid(user.getEmail()))
-//        {
-//            return new ResponseEntity<>("Invalid email", HttpStatusCode.valueOf(400));
-//        }
-//
-//        user.setId(id);
-//        userService.edit(user);
-//        return new ResponseEntity<>("User edited successfully", HttpStatusCode.valueOf(200));
-//    }
 }
