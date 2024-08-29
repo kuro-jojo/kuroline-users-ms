@@ -16,16 +16,13 @@ public class User {
     private String phoneNumber;
     private String password;
 
-    public static boolean isNull(User user) {
-        return user.getEmail() == null || user.getName() == null || user.getStatus() == null;
-    }
-
-    public static boolean isEmpty(User user) {
-        return user.getEmail().isEmpty() || user.getName().isEmpty();
-    }
-
     @Override
     public String toString() {
         return String.format("User info : \n id : %s, name : %s, email : %s, status : %s, profile : %s", id, name, email, status, profilePicture);
+    }
+
+    public static void getPublicInfo(User user){
+        user.setPassword(null);
+        user.setStatus(null);
     }
 }

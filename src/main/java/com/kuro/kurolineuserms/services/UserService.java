@@ -1,10 +1,7 @@
 package com.kuro.kurolineuserms.services;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
@@ -16,6 +13,7 @@ import com.kuro.kurolineuserms.utils.PhoneValidator;
 import com.kuro.kurolineuserms.utils.UserException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -91,17 +89,36 @@ public class UserService implements UserRepository {
     }
 
     @Override
-    public User findByName(String name) {
-        return null;
+    public List<User> findByName(String name) throws ExecutionException, InterruptedException {
+        return findBy("name", name);
     }
 
     @Override
-    public User findByEmail(String email) {
-        return null;
+    public List<User> findByEmail(String email) throws ExecutionException, InterruptedException {
+
+        return findBy("email", email);
     }
 
     @Override
-    public List<User> findAllByName(String name) {
-        return null;
+    public User findByExactEmail(String email) throws ExecutionException, InterruptedException {
+        ApiFuture<QuerySnapshot> future = reference.
+                whereEqualTo("email", email).get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        if(documents.isEmpty()){
+            return null;
+        }
+        return documents.get(0).toObject(User.class);
+    }
+
+    private List<User> findBy(String field, String value) throws ExecutionException, InterruptedException {
+        ApiFuture<QuerySnapshot> future = reference.
+                whereGreaterThan(field, value.toUpperCase())
+                .whereLessThan(field, value.toLowerCase() + '\uf8ff').get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        List<User> users = new ArrayList<>();
+        for (DocumentSnapshot document : documents) {
+            users.add(document.toObject(User.class));
+        }
+        return users;
     }
 }

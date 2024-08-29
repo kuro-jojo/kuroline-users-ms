@@ -15,9 +15,9 @@ public interface UserRepository {
 
     void updateByProfilePicture(User user);
 
-    User findByName(String name);
+    List<User> findByName(String name) throws ExecutionException, InterruptedException;
 
-    User findByEmail(String email);
+    List<User> findByEmail(String email) throws ExecutionException, InterruptedException;
 
-    List<User> findAllByName(String name);
+    User findByExactEmail(String email) throws ExecutionException, InterruptedException;
 }

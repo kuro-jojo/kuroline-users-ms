@@ -8,6 +8,7 @@ import com.kuro.kurolineuserms.data.User;
 import com.kuro.kurolineuserms.services.FileService;
 import com.kuro.kurolineuserms.services.UserService;
 import com.kuro.kurolineuserms.utils.UserException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+@Slf4j
 @RestController
 @RequestMapping(path = "/api/v1/users/register")
 public class UserRegistrationController {
@@ -39,30 +41,28 @@ public class UserRegistrationController {
             @RequestPart("user") User user
     ) {
         if (user == null) {
+            log.warn("No user provided");
             return new ResponseEntity<>(new ResponseMessage("No user provided"), HttpStatus.BAD_REQUEST);
         }
 
         try {
-            User u = userService.findByEmail(user.getEmail());
+            User u = userService.findByExactEmail(user.getEmail());
             if (u != null) {
+                log.warn("User already exists");
                 return new ResponseEntity<>(new ResponseMessage("User already exists"), HttpStatus.CONFLICT);
             }
 
             // register the user using FirebaseAUth
             user = userService.register(user);
-
             if (file != null && !file.isEmpty()) {
                 // Store the file in storage
                 user.setProfilePicture(fileService.upload(file, user.getId()));
             }
             // saving the user in the database
             userService.add(user);
+            log.info("New user registered successfully");
             return new ResponseEntity<>(new ResponseMessage("User registered successfully"), HttpStatus.CREATED);
 
-        } catch (ExecutionException | InterruptedException e) {
-            // TODO: handle each error separately
-            System.out.println(e.getMessage());
-            return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (FirebaseAuthException e) {
             String msg = e.getMessage();
             if (e.getAuthErrorCode() != null) {
@@ -72,14 +72,16 @@ public class UserRegistrationController {
                     msg = "Phone number already exists";
                 }
             }
+            log.error(msg);
             return new ResponseEntity<>(new ResponseMessage(msg), HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
+            log.error(e.getMessage());
             return new ResponseEntity<>(new ResponseMessage("Cannot upload the profile picture"), HttpStatus.INTERNAL_SERVER_ERROR);
-        }catch (NumberParseException | UserException e){
-            System.out.println(e.getMessage());
+        } catch (NumberParseException | UserException e) {
+            log.error(e.getMessage());
             return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            log.error(e.getMessage());
             return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

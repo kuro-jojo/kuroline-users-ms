@@ -10,9 +10,10 @@
     </parent>
     <groupId>com.kuro</groupId>
     <artifactId>kuroline-user-ms</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>kuroline</name>
+    <version>0.0.1</version>
+    <name>kuroline-user-ms</name>
     <description>Chat application : users management microservice</description>
+
     <url/>
     <licenses><license/>
     </licenses>
@@ -92,6 +93,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>/home/jonathan/Personal/java</outputDirectory>
+                </configuration>
             </plugin>
         </plugins>
     </build>
