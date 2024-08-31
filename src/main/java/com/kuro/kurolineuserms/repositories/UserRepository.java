@@ -24,4 +24,6 @@ public interface UserRepository {
     User findByExactEmail(String email) throws ExecutionException, InterruptedException;
 
     void addContact(User user, String contactId);
+
+    void removeContact(User user, String contactId);
 }

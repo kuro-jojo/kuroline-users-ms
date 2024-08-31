@@ -43,7 +43,7 @@ public class UserController {
     public ResponseEntity<Object> getCurrentUserDetails(@AuthenticationPrincipal User user) {
         try {
             User foundUser = userService.findById(user.getId());
-            User.getPublicInfo(foundUser);
+            User.setPublic(foundUser);
             return new ResponseEntity<>(foundUser, HttpStatus.OK);
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error fetching user details", e);
@@ -61,7 +61,7 @@ public class UserController {
     public ResponseEntity<Object> getUserDetails(@PathVariable("id") String userId) {
         try {
             User user = userService.findById(userId);
-            User.getPublicInfo(user);
+            User.setPublic(user);
             return new ResponseEntity<>(user, HttpStatus.OK);
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error fetching user details", e);
@@ -78,7 +78,7 @@ public class UserController {
      */
     @PutMapping("/name")
     public ResponseEntity<Object> updateName(@RequestBody Map<String, String> name,
-            @AuthenticationPrincipal User user) {
+                                             @AuthenticationPrincipal User user) {
         String newName = name.get("name");
         if (newName == null || newName.isBlank()) {
             return new ResponseEntity<>(new ResponseMessage("Name not provided"), HttpStatus.BAD_REQUEST);
@@ -97,7 +97,7 @@ public class UserController {
      */
     @PutMapping("/picture")
     public ResponseEntity<Object> updateProfilePicture(@RequestPart(value = "picture") MultipartFile file,
-            @AuthenticationPrincipal User user) {
+                                                       @AuthenticationPrincipal User user) {
         try {
             String pictureUrl = fileService.upload(file, user.getId());
             user.setProfilePicture(pictureUrl);
@@ -121,8 +121,8 @@ public class UserController {
      */
     @GetMapping("")
     public ResponseEntity<Object> searchBy(@RequestParam(name = "t") String type,
-            @RequestParam(name = "q") String query, @RequestParam(name = "u", defaultValue = "false") String withUser,
-            @AuthenticationPrincipal User user) {
+                                           @RequestParam(name = "q") String query, @RequestParam(name = "u", defaultValue = "false") String withUser,
+                                           @AuthenticationPrincipal User user) {
         try {
             List<User> users;
             switch (type) {
@@ -138,7 +138,7 @@ public class UserController {
             if (!Boolean.parseBoolean(withUser)) {
                 users.removeIf(u -> u.getId().equals(user.getId()));
             }
-            users.forEach(User::getPublicInfo);
+            users.forEach(User::setPublic);
             return new ResponseEntity<>(users, HttpStatus.OK);
         } catch (ExecutionException | InterruptedException e) {
             log.error("Error searching users", e);
@@ -155,7 +155,7 @@ public class UserController {
      */
     @PatchMapping("/contacts/{id}")
     public ResponseEntity<Object> addContact(@PathVariable(value = "id") String contactId,
-            @AuthenticationPrincipal User user) {
+                                             @AuthenticationPrincipal User user) {
         try {
             Optional<User> contactOpt = Optional.ofNullable(userService.findById(contactId));
             if (contactOpt.isEmpty()) {
@@ -173,6 +173,42 @@ public class UserController {
     }
 
     /**
+     * Remove a contact from the list of contacts of the authenticated user.
+     *
+     * @param contactId the contact ID
+     * @param user      the authenticated user
+     * @return the response entity
+     */
+    @DeleteMapping("/contacts/{id}")
+    public ResponseEntity<Object> removeContact(@PathVariable(value = "id") String contactId,
+                                                @AuthenticationPrincipal User user) {
+        try {
+            Optional<User> contactOpt = Optional.ofNullable(userService.findById(contactId));
+            if (contactOpt.isEmpty()) {
+                return new ResponseEntity<>(new ResponseMessage("User not found for the id provided"),
+                        HttpStatus.BAD_REQUEST);
+            }
+            User contact = contactOpt.get();
+            Optional<User> userOpt = Optional.ofNullable(userService.findById(user.getId()));
+            if(userOpt.isEmpty()){
+                return new ResponseEntity<>(new ResponseMessage("User not found"),
+                        HttpStatus.UNAUTHORIZED);
+            }
+            user = userOpt.get();
+            if (!user.getContacts().contains(contactId)) {
+                return new ResponseEntity<>(new ResponseMessage("Contact not found for the user"),
+                        HttpStatus.NOT_FOUND);
+            }
+            userService.removeContact(user, contact.getId());
+            userService.removeContact(contact, user.getId());
+            return new ResponseEntity<>(new ResponseMessage("Contact added successfully"), HttpStatus.OK);
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Error adding contact", e);
+            return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * Updates the user's status.
      *
      * @param status the new status
@@ -181,7 +217,7 @@ public class UserController {
      */
     @PatchMapping("/status")
     public ResponseEntity<Object> updateStatus(@RequestBody Map<String, String> status,
-            @AuthenticationPrincipal User user) {
+                                               @AuthenticationPrincipal User user) {
         try {
             user.setStatus(Status.valueOf(status.get("status")));
             userService.updateByStatus(user);

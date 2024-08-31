@@ -93,10 +93,8 @@ public class UserRegistrationController {
 
         try {
             if (isUserExistsById(user.getId())) {
-                log.info("User found");
                 return new ResponseEntity<>(new ResponseMessage("User found"), HttpStatus.OK);
             }
-
             userService.add(user);
             log.info("User added successfully");
             return new ResponseEntity<>(new ResponseMessage("User added successfully"), HttpStatus.CREATED);

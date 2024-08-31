@@ -24,7 +24,7 @@ public class User {
         return String.format("User info : \n id : %s, name : %s, email : %s, status : %s, profile : %s", id, name, email, status, profilePicture);
     }
 
-    public static void getPublicInfo(User user){
+    public static void setPublic(User user){
         user.setPassword(null);
     }
 }

@@ -207,6 +207,16 @@ public class UserService implements UserRepository {
     public void addContact(User user, String contactId) {
         updateBy(user, "contacts", FieldValue.arrayUnion(contactId));
     }
+  /**
+     * Remove a contact from a user's contact list.
+     *
+     * @param user      The user to update.
+     * @param contactId The contact ID to add.
+     */
+    @Override
+    public void removeContact(User user, String contactId) {
+        updateBy(user, "contacts", FieldValue.arrayRemove(contactId));
+    }
 
     /**
      * Finds users by a specific field and value.
