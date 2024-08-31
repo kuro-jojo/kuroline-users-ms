@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,6 +17,7 @@ public class User {
     private String profilePicture;
     private String phoneNumber;
     private String password;
+    private List<String> contacts;
 
     @Override
     public String toString() {
@@ -23,6 +26,5 @@ public class User {
 
     public static void getPublicInfo(User user){
         user.setPassword(null);
-        user.setStatus(null);
     }
 }

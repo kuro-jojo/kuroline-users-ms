@@ -17,20 +17,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Service class for managing users.
+ */
 @Service
 public class UserService implements UserRepository {
     private final CollectionReference reference;
 
+    /**
+     * Constructor for UserService.
+     *
+     * @param firestoreClient Firestore client instance.
+     */
     public UserService(Firestore firestoreClient) {
         this.reference = firestoreClient.collection("users");
     }
 
+    /**
+     * Adds a new user to the Firestore database.
+     *
+     * @param user The user to add.
+     * @throws ExecutionException   If the computation threw an exception.
+     * @throws InterruptedException If the current thread was interrupted while
+     *                              waiting.
+     */
     @Override
     public void add(User user) throws ExecutionException, InterruptedException {
         DocumentReference docRef = reference.document(user.getId());
         docRef.set(user);
     }
 
+    /**
+     * Registers a new user with Firebase Authentication and sets the user ID.
+     *
+     * @param user The user to register.
+     * @return The registered user with the user ID set.
+     * @throws FirebaseAuthException If there is an error with Firebase
+     *                               Authentication.
+     * @throws NumberParseException  If there is an error parsing the phone number.
+     * @throws UserException         If the user data is invalid.
+     */
     @Override
     public User register(User user) throws FirebaseAuthException, NumberParseException, UserException {
         UserRecord.CreateRequest request = new UserRecord.CreateRequest();
@@ -59,8 +85,17 @@ public class UserService implements UserRepository {
         return user;
     }
 
+    /**
+     * Finds a user by their ID.
+     *
+     * @param uid The user ID.
+     * @return The user, or null if not found.
+     * @throws ExecutionException   If the computation threw an exception.
+     * @throws InterruptedException If the current thread was interrupted while
+     *                              waiting.
+     */
     @Override
-    public User get(String uid) throws ExecutionException, InterruptedException {
+    public User findById(String uid) throws ExecutionException, InterruptedException {
         DocumentReference docRef = reference.document(uid);
 
         ApiFuture<DocumentSnapshot> future = docRef.get();
@@ -73,46 +108,118 @@ public class UserService implements UserRepository {
         return null;
     }
 
-    private void updateBy(String field, String val, String userID) {
-        DocumentReference docRef = reference.document(userID);
+    /**
+     * Updates a specific field of a user.
+     *
+     * @param user  The user to update.
+     * @param field The field to update.
+     * @param val   The new value for the field.
+     */
+    private void updateBy(User user, String field, Object val) {
+        DocumentReference docRef = reference.document(user.getId());
         docRef.update(field, val);
     }
 
+    /**
+     * Updates the name of a user.
+     *
+     * @param user The user to update.
+     */
     @Override
     public void updateByName(User user) {
-        updateBy("name", user.getName(), user.getId());
+        updateBy(user, "name", user.getName());
     }
 
+    /**
+     * Updates the status of a user.
+     *
+     * @param user The user to update.
+     */
+    @Override
+    public void updateByStatus(User user) {
+        updateBy(user, "status", user.getStatus());
+    }
+
+    /**
+     * Updates the profile picture of a user.
+     *
+     * @param user The user to update.
+     */
     @Override
     public void updateByProfilePicture(User user) {
-        updateBy("profilePicture", user.getProfilePicture(), user.getId());
+        updateBy(user, "profilePicture", user.getProfilePicture());
     }
 
+    /**
+     * Finds users by their name.
+     *
+     * @param name The name to search for.
+     * @return A list of users with the given name.
+     * @throws ExecutionException   If the computation threw an exception.
+     * @throws InterruptedException If the current thread was interrupted while
+     *                              waiting.
+     */
     @Override
     public List<User> findByName(String name) throws ExecutionException, InterruptedException {
         return findBy("name", name);
     }
 
+    /**
+     * Finds users by their email.
+     *
+     * @param email The email to search for.
+     * @return A list of users with the given email.
+     * @throws ExecutionException   If the computation threw an exception.
+     * @throws InterruptedException If the current thread was interrupted while
+     *                              waiting.
+     */
     @Override
     public List<User> findByEmail(String email) throws ExecutionException, InterruptedException {
-
         return findBy("email", email);
     }
 
+    /**
+     * Finds a user by their exact email.
+     *
+     * @param email The email to search for.
+     * @return The user with the given email, or null if not found.
+     * @throws ExecutionException   If the computation threw an exception.
+     * @throws InterruptedException If the current thread was interrupted while
+     *                              waiting.
+     */
     @Override
     public User findByExactEmail(String email) throws ExecutionException, InterruptedException {
-        ApiFuture<QuerySnapshot> future = reference.
-                whereEqualTo("email", email).get();
+        ApiFuture<QuerySnapshot> future = reference.whereEqualTo("email", email).get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-        if(documents.isEmpty()){
+        if (documents.isEmpty()) {
             return null;
         }
         return documents.get(0).toObject(User.class);
     }
 
+    /**
+     * Adds a contact to a user's contact list.
+     *
+     * @param user      The user to update.
+     * @param contactId The contact ID to add.
+     */
+    @Override
+    public void addContact(User user, String contactId) {
+        updateBy(user, "contacts", FieldValue.arrayUnion(contactId));
+    }
+
+    /**
+     * Finds users by a specific field and value.
+     *
+     * @param field The field to search by.
+     * @param value The value to search for.
+     * @return A list of users matching the field and value.
+     * @throws ExecutionException   If the computation threw an exception.
+     * @throws InterruptedException If the current thread was interrupted while
+     *                              waiting.
+     */
     private List<User> findBy(String field, String value) throws ExecutionException, InterruptedException {
-        ApiFuture<QuerySnapshot> future = reference.
-                whereGreaterThan(field, value.toUpperCase())
+        ApiFuture<QuerySnapshot> future = reference.whereGreaterThan(field, value.toUpperCase())
                 .whereLessThan(field, value.toLowerCase() + '\uf8ff').get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
         List<User> users = new ArrayList<>();
