@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: kuroline-users-ms
+  servlet:
+    multipart:
+      max-file-size: 3MB
+server:
+  port: 8091
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: mappings # Expose the /actuator/mappings endpoint to display all HTTP request paths and their handlers
+
