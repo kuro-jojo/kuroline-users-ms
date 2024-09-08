@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.kuro</groupId>
-    <artifactId>kuroline-user-ms</artifactId>
-    <version>0.0.1</version>
-    <name>kuroline-user-ms</name>
+    <artifactId>kuroline-users-ms</artifactId>
+    <version>1.0.0</version>
+    <name>kuroline-users-ms</name>
     <description>Chat application : users management microservice</description>
 
     <url/>
@@ -113,9 +113,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
+                <!-- <configuration>
                     <outputDirectory>/home/jonathan/Personal/java</outputDirectory>
-                </configuration>
+                </configuration> -->
             </plugin>
         </plugins>
     </build>
