@@ -7,9 +7,9 @@ COPY pom.xml .
 COPY src ./src
 # Accept the FIREBASE_SERVICE_ACCOUNT as a build argument
 ARG FIREBASE_SERVICE_ACCOUNT
-
+RUN ls
 # Write the service account json into the container file system
-RUN echo "$FIREBASE_SERVICE_ACCOUNT" > /src/main/resources/serviceAccount.json
+RUN echo "$FIREBASE_SERVICE_ACCOUNT" > src/main/resources/serviceAccount.json
 # Build the application using Maven
 RUN mvn clean package -DskipTests
 
