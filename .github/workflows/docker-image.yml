@@ -32,6 +32,8 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/kuroline-users-ms:latest
           build-args: |
             FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=local,src=/tmp/.buildx-cache
 
       - name: Verify Docker image
         run: docker run ${{ secrets.DOCKER_USERNAME }}/kuroline-users-ms:latest
