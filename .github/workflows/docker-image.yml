@@ -10,7 +10,8 @@ jobs:
     defaults:
       run:
         shell: bash
-
+    env:
+      DOCKER_BUILDKIT: 1  # Enable BuildKit
     steps:
       - uses: actions/checkout@v4
 
@@ -24,16 +25,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+           # Step to create the serviceAccount.json file from GitHub Secret
+      - name: Create Firebase service account JSON file
+        run: |
+            echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > serviceAccount.json
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/kuroline-users-ms:latest
-          build-args: |
-            FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          secret-files: |
+            "service_account=serviceAccount.json"
           cache-to: type=local,dest=/tmp/.buildx-cache
-          cache-from: type=local,src=/tmp/.buildx-cache
-
-      - name: Verify Docker image
-        run: docker run ${{ secrets.DOCKER_USERNAME }}/kuroline-users-ms:latest
+        #   cache-from: type=local,src=/tmp/.buildx-cache
