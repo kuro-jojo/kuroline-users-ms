@@ -10,6 +10,7 @@ ARG FIREBASE_SERVICE_ACCOUNT
 RUN ls
 # Write the service account json into the container file system
 RUN echo "$FIREBASE_SERVICE_ACCOUNT" > src/main/resources/serviceAccount.json
+RUN cat src/main/resources/serviceAccount.json
 # Build the application using Maven
 RUN mvn clean package -DskipTests
 
