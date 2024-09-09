@@ -10,8 +10,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
-      DOCKER_BUILDKIT: 1  # Enable BuildKit
+        
     steps:
       - uses: actions/checkout@v4
 
@@ -38,4 +37,4 @@ jobs:
           secret-files: |
             "service_account=serviceAccount.json"
           cache-to: type=local,dest=/tmp/.buildx-cache
-        #   cache-from: type=local,src=/tmp/.buildx-cache
+          cache-from: type=local,src=/tmp/.buildx-cache
