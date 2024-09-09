@@ -27,5 +27,11 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/kuroline-users-ms:latest
+          build-args: |
+            FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Verify Docker image
+        run: docker run ${{ secrets.DOCKER_USERNAME }}/kuroline-users-ms:latest
