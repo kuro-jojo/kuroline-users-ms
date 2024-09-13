@@ -17,3 +17,5 @@ WORKDIR /app
 # Copy the built JAR file from the previous stage to the container
 COPY --from=build /app/target/kuroline-users-ms-1.0.0.jar /app/app.jar
 ENTRYPOINT [ "java", "-jar", "app.jar" ]
+
+EXPOSE 8091
